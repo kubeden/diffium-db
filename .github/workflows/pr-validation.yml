@@ -7,10 +7,13 @@ on:
 
 jobs:
   require-assignment-and-linked-issue:
+    # A bot cannot assign itself or open an issue first, so these rules would
+    # red every dependency bump for something nobody can fix.
+    if: github.event.pull_request.user.type != 'Bot'
     runs-on: ubuntu-latest
     steps:
       - name: Check PR has assignee
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const pr = context.payload.pull_request;
@@ -52,7 +55,7 @@ jobs:
               core.setFailed('PR must have at least one assignee (or be opened by a maintainer).');
             }
       - name: Require linked issue (mention or closing keywords)
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const pr = context.payload.pull_request;
@@ -72,7 +75,7 @@ jobs:
             }
             core.exportVariable('LINKED_ISSUES', Array.from(numbers).join(','));
       - name: Check linked issues are assigned
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const env = process.env;
@@ -86,6 +89,9 @@ jobs:
                   repo: context.repo.repo,
                   issue_number: number,
                 });
+                // A "#123" can point at a pull request, and the assignment rule
+                // is about issues.
+                if (issue.pull_request) continue;
                 checked++;
                 if (!issue.assignees || issue.assignees.length === 0) {
                   core.setFailed(`Linked issue #${number} has no assignee.`);
