@@ -3,8 +3,11 @@
 // same state, same widths, same colours.
 //
 //   bun run scripts/shot.ts --schema demo
+//   bun run scripts/shot.ts --schema demo --keys jjjjs --out docs/shots/rows
 //
 // Writes docs/shots/watch.txt (plain) and docs/shots/watch.svg (coloured).
+// --keys replays a literal key sequence before painting, so any screen the
+// program can reach is a screenshot you can regenerate.
 
 import { createTestRenderer } from "@opentui/core/testing"
 import { mkdir, writeFile } from "node:fs/promises"
@@ -25,6 +28,7 @@ const { values } = parseArgs({
     width: { type: "string" },
     height: { type: "string" },
     select: { type: "string" },
+    keys: { type: "string" },
   },
 })
 
@@ -46,6 +50,7 @@ const app = await createApp({
 await app.refresh()
 for (let i = 0; i < Number(values.select ?? 0); i++)
   app.onKey({ name: "j", sequence: "j" } as never)
+for (const ch of values.keys ?? "") app.onKey({ name: ch, sequence: ch } as never)
 app.paint()
 await setup.renderOnce()
 
