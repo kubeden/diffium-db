@@ -89,6 +89,9 @@ jobs:
                   repo: context.repo.repo,
                   issue_number: number,
                 });
+                // A "#123" can point at a pull request, and the assignment rule
+                // is about issues.
+                if (issue.pull_request) continue;
                 checked++;
                 if (!issue.assignees || issue.assignees.length === 0) {
                   core.setFailed(`Linked issue #${number} has no assignee.`);
