@@ -1,5 +1,7 @@
 # diffium-db
 
+![the watcher catching a migration](docs/shots/watch.png)
+
 diffium-db is a TUI that shows you what is changing in your database — structure
 and rows — while an agent, a migration, or anyone else works. It is the database
 half of [diffium](https://github.com/kubeden/diffium): same idea, same shape, one
@@ -15,12 +17,7 @@ a postgres to watch
 
     brew install oven-sh/bun/bun
 
-## Stage 1 (WIP)
-
-Watcher TUI that lists changed objects on the left and a side-by-side diff on
-the right, re-capturing every second.
-
-### Run
+## Run
 
     bun install
     export DATABASE_URL=postgres://…
@@ -34,7 +31,7 @@ the right, re-capturing every second.
 - `--root <path>` to put `.diffium-db/` somewhere other than the current
   directory
 
-### Keys
+## Keys
 
 - `j/k` or arrow keys: move selection
 - `J/K`, `PgDn/PgUp`: scroll the diff
@@ -53,14 +50,9 @@ The top bar shows `Changes | <object>` with a horizontal rule below. The bottom
 bar shows `h: help` on the left and the database, the baseline and the last
 capture time on the right.
 
-![the watcher catching a migration](docs/shots/watch.png)
-
-That screenshot is the real thing, taken headless by `scripts/shot.ts` from the
-demo below. `docs/shots/captured-diff.txt` is what `e` wrote at the same moment.
-
 ## Quick Demo
 
-Two terminals and about a minute. `examples/demo/` sets up a `demo` schema and
+`examples/demo/` sets up a `demo` schema and
 then changes it the way an agent would.
 
     psql "$DATABASE_URL" -f examples/demo/01-baseline.sql
@@ -71,10 +63,9 @@ Then, in the other terminal:
 
     psql "$DATABASE_URL" -f examples/demo/02-agent-change.sql
 
-Five changes appear: a new enum, two new columns and a new index on
-`demo.users`, an index gone from `demo.projects`, a row inserted and a row
-deleted. Press `j`/`k` to walk them, `s` to switch the diff style, `e` to write
-the whole thing to a file.
+Press `j`/`k` to explore the changes, `s` to switch the diff style.
+
+> `h` for help
 
 ## Commands
 
@@ -85,34 +76,6 @@ the whole thing to a file.
 
 `diff --exit-code` returns 1 when anything changed, which is enough to fail a CI
 job or stop an agent's loop. `diff --json` gives you the same thing structured.
-
-## What it watches
-
-Structure: tables (columns, defaults, identity, constraints, indexes,
-triggers), views, materialized views, enums and functions. Every object is
-rendered to canonical text with a stable line order, so adding a column is one
-added line rather than a rewritten table.
-
-Rows: a count for every table, and for tables with a primary key under
-`--row-limit` (5000 by default), a per-row fingerprint. That is what tells an
-insert from an update from a delete. Tables without a primary key, and tables
-over the limit, are counted and nothing more — the diff says which.
-
-One honest limitation: a row is fingerprinted over its whole record, so when a
-table gains or loses a column every row reads as edited. Inserts and deletes are
-still exact, because those come from the primary key. The diff marks the table
-and says so rather than claiming edits nobody made.
-
-## Where baselines live
-
-- `--store local` (the default) keeps them as JSON under
-  `.diffium-db/snapshots/`. No setup, and readable enough to commit next to the
-  migrations that produced them.
-- `--store neon --store-url <url>` keeps them in Postgres, in a `diffium_db`
-  schema, so a team or a CI job can share one baseline. Built against
-  [Neon](https://neon.tech), but it is ordinary SQL and any Postgres will do.
-  diffium-db never watches its own schema, so the store url and the watched url
-  can be the same database.
 
 ## Theming
 
@@ -129,12 +92,6 @@ Hex only. Omitted fields keep their defaults. `selectedColor`, `metaColor`,
 
 `.diffium-db/prefs.json` remembers the pane width and the diff style between
 runs.
-
-## ORMs
-
-v1 tells you a column appeared. It cannot tell you which migration or which
-model file put it there — that mapping is an ORM's business, and it is v2. The
-seam is in `src/orms/`, documented and deliberately empty. See `ORMS.md`.
 
 ## Built with
 
