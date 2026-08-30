@@ -202,6 +202,24 @@ describe("watch screen", () => {
     await app.dispose()
     setup.renderer.destroy()
   })
+
+  test("e writes the whole change list to a file and says where", async () => {
+    const { app, setup, frame } = await mount()
+    await app.refresh()
+
+    const path = await app.exportDiff()
+    const written = await Bun.file(path).text()
+    expect(written).toContain("3 changes: 2 structure, 1 rows")
+    expect(written).toContain("+ table public.orgs")
+    expect(written).toContain("+   column id")
+
+    app.onKey(key("e", "e"))
+    await Bun.sleep(10)
+    expect(await frame()).toContain("wrote ")
+
+    await app.dispose()
+    setup.renderer.destroy()
+  })
 })
 
 // The panes are one grid; splitting on the divider column is how a reader tells
