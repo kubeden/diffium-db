@@ -1,0 +1,45 @@
+diffium-db  neondb
+baseline    baseline
+captured    2026-08-30T09:28:05.293Z
+summary     5 changes: 3 structure, 2 rows
+
++ enum demo.plan_tier  +4 -0
++ enum demo.plan_tier
++   value free
++   value pro
++   value team
+
+~ table demo.projects  +0 -1
+  table demo.projects
+    column id bigint not null default nextval('demo.projects_id_seq'::regclass)
+    column owner_id bigint not null
+    column name text not null
+    column created_at timestamp with time zone not null default now()
+    constraint projects_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES demo.users(id) ON DELETE CASCADE
+    constraint projects_pkey PRIMARY KEY (id)
+-   index projects_owner_id_idx btree (owner_id)
+
+~ table demo.users  +3 -0
+  table demo.users
+    column id bigint not null default nextval('demo.users_id_seq'::regclass)
+    column email text not null
+    column name text
+    column created_at timestamp with time zone not null default now()
++   column plan plan_tier not null default 'free'::plan_tier
++   column last_seen_at timestamp with time zone
+    constraint users_email_key UNIQUE (email)
+    constraint users_pkey PRIMARY KEY (id)
++   index users_lower_email_idx btree (lower(email))
+
+- rows demo.projects  +0 ~0 -1
+- (3,3,bombe,"2026-08-30 09:17:25.565466+00")
+
++ rows demo.users  +1 ~3? -0
+  # columns changed (+plan, +last_seen_at) — every row reads as edited; inserts and deletes are still exact
+- (1,ada@example.com,"Ada Lovelace","2026-08-30 09:17:25.43211+00")
+- (2,grace@example.com,"Grace Hopper","2026-08-30 09:17:25.43211+00")
+- (3,alan@example.com,"Alan Turing","2026-08-30 09:17:25.43211+00")
++ (1,ada@example.com,"Ada Lovelace","2026-08-30 09:17:25.43211+00",free,)
++ (2,grace@example.com,"Grace Hopper","2026-08-30 09:17:25.43211+00",pro,)
++ (3,alan@example.com,"Alan Turing","2026-08-30 09:17:25.43211+00",free,)
++ (4,katherine@example.com,"Katherine Johnson","2026-08-30 09:17:40.082081+00",free,)
